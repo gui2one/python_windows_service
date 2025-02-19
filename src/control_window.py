@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from subprocess import Popen, STDOUT, PIPE
+import psutil
 import sys, os
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
@@ -10,17 +11,21 @@ class ControlWindow(ctk.CTk):
         # self.resizable(False, False)
         
         self.btn_install = ctk.CTkButton(self, text="Install Service", command=self.install_service)
-        self.btn_install.pack(pady=20)
+        self.btn_install.pack(pady=5)
         
         self.btn_remove = ctk.CTkButton(self, text="Uninstall Service", command=self.remove_service)
-        self.btn_remove.pack(pady=20)
+        self.btn_remove.pack(pady=5)
         
         self.btn_start = ctk.CTkButton(self, text="Start Service", command=self.start_service)
-        self.btn_start.pack(pady=20)
+        self.btn_start.pack(pady=5)
 
         self.btn_stop = ctk.CTkButton(self, text="Stop Service", command=self.stop_service)
-        self.btn_stop.pack(pady=20)
+        self.btn_stop.pack(pady=5)
         
+        self.btn_choose_file = ctk.CTkButton(self,text = "choose file", command = self.choose_file)
+        self.btn_choose_file.pack(pady=5)
+        
+        self.check_service()
     def install_service(self):
         if getattr(sys, 'frozen', False):
             BASE_DIR = os.path.dirname(sys.executable)
@@ -73,6 +78,24 @@ class ControlWindow(ctk.CTk):
         
         Popen(cmd)
 
+    def choose_file(self):
+        file_path = ctk.filedialog.askopenfilename()
+        print(file_path)
+
+    def check_service(self):
+        try :
+            service = psutil.win_service_get("MyService")
+            if not service == None:
+                print(service)
+                print(dir(service))
+                print(service.status())
+                print(service.binpath())
+            else : 
+                print("Couldn't find serevice with that name")
+            pass
+        except:
+            print("problem")
+        
 if __name__ == "__main__":
     window = ControlWindow()
     window.mainloop()
