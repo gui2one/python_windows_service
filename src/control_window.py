@@ -13,6 +13,14 @@ class StatusBar(tkinter.Label):
         
     def setText(self, text : str):
         self.configure(text=text)
+        
+    def setAlert(self, text : str):
+        self.setText(text)
+        self.configure(foreground="red")
+        
+    def setSuccess(self, text : str):
+        self.setText(text)
+        self.configure(foreground="green")
                        
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
@@ -108,15 +116,14 @@ class ControlWindow(ctk.CTk):
                 # print(dir(service))
                 # print(service.status())
                 # print(service.binpath())
-                self.status_bar.setText("Service is installed")
+                self.status_bar.setSuccess("Service is installed")
             else : 
-                self.status_bar.setText("Service is NOT installed")
+                self.status_bar.setAlter("Service is NOT installed")
                 print("Couldn't find service with that name")
             pass
         except:
-            self.status_bar.setText("Service Not Found !!")
-            
-            # sleep(1)
+            self.status_bar.setAlert("Service Not Found")
+            # sleep(0.5)
             # self.install_service()
         
 if __name__ == "__main__":
