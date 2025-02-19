@@ -1,15 +1,28 @@
 import customtkinter as ctk
-from subprocess import Popen, STDOUT, PIPE
+import tkinter
+from subprocess import Popen, STDOUT, PIPE, run
 import psutil
 import sys, os
+from pathlib import Path
+from time import sleep
+class StatusBar(tkinter.Label):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs, relief="sunken", bd=1, anchor="e")
+        self.configure(text="hello there", font=("Helvetica", 15))
+        self.pack(fill="x", pady=5, side="bottom")
+        
+    def setText(self, text : str):
+        self.configure(text=text)
+                       
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self.title("Control Window")
-        self.geometry("300x200")
+        # self.geometry("300x200")
         # self.resizable(False, False)
         
+        self.file_to_convert : Path = None
         self.btn_install = ctk.CTkButton(self, text="Install Service", command=self.install_service)
         self.btn_install.pack(pady=5)
         
@@ -25,6 +38,9 @@ class ControlWindow(ctk.CTk):
         self.btn_choose_file = ctk.CTkButton(self,text = "choose file", command = self.choose_file)
         self.btn_choose_file.pack(pady=5)
         
+        # self.file_label = tkinter.Label(self, text=self.file_to_convert, relief="sunken", bd=1, anchor="e")
+        self.status_bar = StatusBar(self)
+        
         self.check_service()
     def install_service(self):
         if getattr(sys, 'frozen', False):
@@ -35,9 +51,11 @@ class ControlWindow(ctk.CTk):
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             cmd = ["python", f"{BASE_DIR}/service.py", "install"]
 
-        print(cmd)
+        # print(cmd)
         
-        Popen(cmd)
+        run(cmd)
+        
+        self.check_service()
 
     def remove_service(self):
         if getattr(sys, 'frozen', False):
@@ -48,9 +66,10 @@ class ControlWindow(ctk.CTk):
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             cmd = ["python", f"{BASE_DIR}/service.py", "remove"]
 
-        print(cmd)
+        # print(cmd)
         
-        Popen(cmd)
+        run(cmd)
+        self.check_service()
 
     def start_service(self):
         if getattr(sys, 'frozen', False):
@@ -61,9 +80,8 @@ class ControlWindow(ctk.CTk):
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             cmd = ["python", f"{BASE_DIR}/service.py", "start"]
 
-        print(cmd)
-        
-        Popen(cmd)
+        run(cmd)
+        self.check_service()
 
     def stop_service(self):
         if getattr(sys, 'frozen', False):
@@ -73,28 +91,33 @@ class ControlWindow(ctk.CTk):
         else:
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             cmd = ["python", f"{BASE_DIR}/service.py", "stop"]
-
-        print(cmd)
         
-        Popen(cmd)
+        run(cmd)
+        self.check_service()
 
     def choose_file(self):
         file_path = ctk.filedialog.askopenfilename()
-        print(file_path)
+        self.file_to_convert = Path(file_path)
+        self.status_bar.setText(self.file_to_convert)
 
     def check_service(self):
         try :
             service = psutil.win_service_get("MyService")
-            if not service == None:
-                print(service)
-                print(dir(service))
-                print(service.status())
-                print(service.binpath())
+            if service != None:
+                # print(service)
+                # print(dir(service))
+                # print(service.status())
+                # print(service.binpath())
+                self.status_bar.setText("Service is installed")
             else : 
-                print("Couldn't find serevice with that name")
+                self.status_bar.setText("Service is NOT installed")
+                print("Couldn't find service with that name")
             pass
         except:
-            print("problem")
+            self.status_bar.setText("Service Not Found !!")
+            
+            # sleep(1)
+            # self.install_service()
         
 if __name__ == "__main__":
     window = ControlWindow()
