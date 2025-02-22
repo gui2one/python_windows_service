@@ -5,6 +5,8 @@ import psutil
 import sys, os
 from pathlib import Path
 from time import sleep
+from global_vars import SERVICE_NAME
+
 class StatusBar(tkinter.Label):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs, relief="sunken", bd=1, anchor="e")
@@ -27,7 +29,7 @@ class ControlWindow(ctk.CTk):
         super().__init__(master, **kwargs)
 
         self.title("Control Window")
-        # self.geometry("300x200")
+        self.geometry("300x500")
         # self.resizable(False, False)
         
         self.file_to_convert : Path = None
@@ -49,6 +51,10 @@ class ControlWindow(ctk.CTk):
         # self.file_label = tkinter.Label(self, text=self.file_to_convert, relief="sunken", bd=1, anchor="e")
         self.status_bar = StatusBar(self)
         
+        
+        self.service_is_installed = False 
+        self.service_is_running = False 
+        
         self.check_service()
     def install_service(self):
         if getattr(sys, 'frozen', False):
@@ -56,8 +62,7 @@ class ControlWindow(ctk.CTk):
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
             cmd = [ f"{full_path}", "install"]
         else:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            cmd = ["python", f"{BASE_DIR}/service.py", "install"]
+            pass
 
         # print(cmd)
         
@@ -66,16 +71,20 @@ class ControlWindow(ctk.CTk):
         self.check_service()
 
     def remove_service(self):
+        # try and stop it before hand
+        try:
+            self.stop_service()
+            print("Did I Stopped service ?")
+        except:
+            pass
+        
         if getattr(sys, 'frozen', False):
             BASE_DIR = os.path.dirname(sys.executable)
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
             cmd = [ f"{full_path}", "remove"]
         else:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            cmd = ["python", f"{BASE_DIR}/service.py", "remove"]
+            pass
 
-        # print(cmd)
-        
         run(cmd)
         self.check_service()
 
@@ -85,8 +94,7 @@ class ControlWindow(ctk.CTk):
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
             cmd = [ f"{full_path}", "start"]
         else:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            cmd = ["python", f"{BASE_DIR}/service.py", "start"]
+            pass
 
         run(cmd)
         self.check_service()
@@ -97,8 +105,7 @@ class ControlWindow(ctk.CTk):
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
             cmd = [ f"{full_path}", "stop"]
         else:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            cmd = ["python", f"{BASE_DIR}/service.py", "stop"]
+            pass
         
         run(cmd)
         self.check_service()
@@ -110,22 +117,46 @@ class ControlWindow(ctk.CTk):
 
     def check_service(self):
         try :
-            service = psutil.win_service_get("MyService")
+            service = psutil.win_service_get(SERVICE_NAME)
             if service != None:
                 # print(service)
                 # print(dir(service))
                 # print(service.status())
                 # print(service.binpath())
                 self.status_bar.setSuccess("Service is installed")
+                self.service_is_installed = True
+                if service.status() == "running":
+                    self.status_bar.setSuccess("Service is Running")
+                    self.service_is_running = True
+                else:
+                    self.status_bar.setSuccess("Service is Stopped")
+                    self.service_is_running = False
             else : 
-                self.status_bar.setAlter("Service is NOT installed")
+                self.service_is_installed = False
+                self.service_is_running = False
+                self.status_bar.setAlert("Service is NOT installed")
                 print("Couldn't find service with that name")
             pass
         except:
             self.status_bar.setAlert("Service Not Found")
+            self.service_is_installed = False
+            self.service_is_running = False
             # sleep(0.5)
             # self.install_service()
         
+        self.update_buttons()
+
+    def update_buttons(self):
+        if self.service_is_installed:
+            self.btn_install.configure(state="disabled")
+            self.btn_remove.configure(state="normal")
+            self.btn_start.configure(state="normal")
+            self.btn_stop.configure(state="normal")
+        else:
+            self.btn_install.configure(state="normal")
+            self.btn_remove.configure(state="disabled")
+            self.btn_start.configure(state="disabled")
+            self.btn_stop.configure(state="disabled")
 if __name__ == "__main__":
     window = ControlWindow()
     window.mainloop()

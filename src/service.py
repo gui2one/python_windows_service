@@ -3,6 +3,7 @@ import sys
 import win32serviceutil  # ServiceFramework and commandline helper
 import win32service  # Events
 import servicemanager  # Simple setup and logging
+from global_vars import SERVICE_NAME, SERVICE_DISPLAY_NAME, SERVICE_DESCRIPTION
 
 
 class MyService:
@@ -22,9 +23,9 @@ class MyService:
 
 class MyServiceFramework(win32serviceutil.ServiceFramework):
 
-    _svc_name_ = "MyService"
-    _svc_display_name_ = "My Service display name"
-    _svc_description_ = "My Service description"
+    _svc_name_ = SERVICE_NAME
+    _svc_display_name_ = SERVICE_DISPLAY_NAME
+    _svc_description_ = SERVICE_DESCRIPTION
 
     def SvcStop(self):
         """Stop the service"""
