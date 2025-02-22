@@ -32,7 +32,7 @@ class FileWidget(ctk.CTkFrame):
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         
-        self.file_to_convert : Path = None
+        self.file_path : Path = None
 
         
         
@@ -42,15 +42,15 @@ class FileWidget(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(self, text = "No Title")
         self.title_label.grid(column=1, row=0, padx=10, sticky="e")
         
-        self.file_label = ctk.CTkLabel(self, text=self.file_to_convert, anchor="e")
+        self.file_label = ctk.CTkLabel(self, text=self.file_path, anchor="e")
         self.file_label.configure(text="Choose File")
         self.file_label.grid(column=0, row=1, padx=10, columnspan=2, sticky="w")
         
         
     def choose_file(self):
         file_path = ctk.filedialog.askopenfilename()
-        self.file_to_convert = Path(file_path)
-        self.file_label.configure(text=self.file_to_convert)
+        self.file_path = Path(file_path)
+        self.file_label.configure(text=self.file_path)
         
     def setTitle(self, title : str):
         self.title_label.configure(text=title)
@@ -80,6 +80,10 @@ class ControlWindow(ctk.CTk):
         self.file_widget = FileWidget(self)
         self.file_widget.setTitle("File to Convert")
         self.file_widget.pack(pady=5, fill="x")
+
+        self.converted_file = FileWidget(self)
+        self.converted_file.setTitle("Converted File")
+        self.converted_file.pack(pady=5, fill="x")
         
         self.service_is_installed = False 
         self.service_is_running = False 
@@ -87,6 +91,7 @@ class ControlWindow(ctk.CTk):
         self.check_service()
         
     def install_service(self):
+
         if getattr(sys, 'frozen', False):
             BASE_DIR = os.path.dirname(sys.executable)
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
@@ -119,10 +124,11 @@ class ControlWindow(ctk.CTk):
         self.check_service()
 
     def start_service(self):
+
         if getattr(sys, 'frozen', False):
             BASE_DIR = os.path.dirname(sys.executable)
             full_path = f"{BASE_DIR}\\service.exe".replace("\\", "/")
-            cmd = [ f"{full_path}", "start"]
+            cmd = [ f"{full_path}", "start", "--file", self.file_widget.file_path, "--target-file", self.converted_file.file_path]
         else:
             pass
 

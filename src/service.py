@@ -4,7 +4,8 @@ import win32serviceutil  # ServiceFramework and commandline helper
 import win32service  # Events
 import servicemanager  # Simple setup and logging
 from global_vars import SERVICE_NAME, SERVICE_DISPLAY_NAME, SERVICE_DESCRIPTION
-
+import argparse
+from pathlib import Path
 
 class MyService:
     """Silly little application stub"""
@@ -15,9 +16,28 @@ class MyService:
 
     def run(self):
         """Main service loop. This is where work is done!"""
+        
+        parser = argparse.ArgumentParser()
+        parser.add_argument("start", nargs="?", default=False)
+        parser.add_argument("stop", nargs="?", default=False)
+        parser.add_argument("debug", nargs="?", default=False)
+        parser.add_argument("--file", type=str)
+        parser.add_argument("--target-file", type=str)
+        args = parser.parse_args()
         self.running = True
         while self.running:
+            
             servicemanager.LogInfoMsg("Service running...")
+            # servicemanager.LogInfoMsg(f"{args.file} {args.target_file}")
+            data : str = ""
+            if args.file and args.target_file:
+                servicemanager.LogInfoMsg(args.file)
+                servicemanager.LogInfoMsg(args.target_file)
+                with open(Path(args.file), "r") as f:
+                    data = f.read()
+                with open(Path(args.target_file), "w") as f:
+                    f.write(data)
+                    # f.write("I am a service")
             time.sleep(3)  # Important work
 
 

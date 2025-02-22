@@ -1,2 +1,2 @@
 pyi-makespec --onefile --runtime-tmpdir=./temp --hidden-import win32timezone --uac-admin src/service.py
-pyi-makespec --onefile --runtime-tmpdir=./temp --noconsole --hidden-import win32timezone --uac-admin src/control_window.py
+pyi-makespec --onefile --runtime-tmpdir=./temp --hidden-import win32timezone --uac-admin src/control_window.py
