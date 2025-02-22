@@ -23,14 +23,44 @@ class StatusBar(tkinter.Label):
     def setSuccess(self, text : str):
         self.setText(text)
         self.configure(foreground="green")
-                       
+class FileWidget(ctk.CTkFrame):
+    
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.rowconfigure(0, weight=0)
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, weight=0)
+        self.columnconfigure(1, weight=1)
+        
+        self.file_to_convert : Path = None
+
+        
+        
+        self.btn_choose_file = ctk.CTkButton(self,text = "choose file", command = self.choose_file)
+        self.btn_choose_file.grid(column=0, row=0, pady=5)
+        
+        self.title_label = ctk.CTkLabel(self, text = "No Title")
+        self.title_label.grid(column=1, row=0, padx=10, sticky="e")
+        
+        self.file_label = ctk.CTkLabel(self, text=self.file_to_convert, anchor="e")
+        self.file_label.configure(text="Choose File")
+        self.file_label.grid(column=0, row=1, padx=10, columnspan=2, sticky="w")
+        
+        
+    def choose_file(self):
+        file_path = ctk.filedialog.askopenfilename()
+        self.file_to_convert = Path(file_path)
+        self.file_label.configure(text=self.file_to_convert)
+        
+    def setTitle(self, title : str):
+        self.title_label.configure(text=title)
+        
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
 
         self.title("Control Window")
-        self.geometry("300x500")
-        # self.resizable(False, False)
+        self.geometry("400x500")
         
         self.file_to_convert : Path = None
         self.btn_install = ctk.CTkButton(self, text="Install Service", command=self.install_service)
@@ -44,18 +74,18 @@ class ControlWindow(ctk.CTk):
 
         self.btn_stop = ctk.CTkButton(self, text="Stop Service", command=self.stop_service)
         self.btn_stop.pack(pady=5)
-        
-        self.btn_choose_file = ctk.CTkButton(self,text = "choose file", command = self.choose_file)
-        self.btn_choose_file.pack(pady=5)
-        
-        # self.file_label = tkinter.Label(self, text=self.file_to_convert, relief="sunken", bd=1, anchor="e")
+
         self.status_bar = StatusBar(self)
         
+        self.file_widget = FileWidget(self)
+        self.file_widget.setTitle("File to Convert")
+        self.file_widget.pack(pady=5, fill="x")
         
         self.service_is_installed = False 
         self.service_is_running = False 
         
         self.check_service()
+        
     def install_service(self):
         if getattr(sys, 'frozen', False):
             BASE_DIR = os.path.dirname(sys.executable)
@@ -109,11 +139,6 @@ class ControlWindow(ctk.CTk):
         
         run(cmd, creationflags=CREATE_NO_WINDOW)
         self.check_service()
-
-    def choose_file(self):
-        file_path = ctk.filedialog.askopenfilename()
-        self.file_to_convert = Path(file_path)
-        self.status_bar.setText(self.file_to_convert)
 
     def check_service(self):
         try :
