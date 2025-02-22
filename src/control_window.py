@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import tkinter
-from subprocess import Popen, STDOUT, PIPE, run
+from subprocess import Popen, STDOUT, PIPE, run, CREATE_NO_WINDOW
 import psutil
 import sys, os
 from pathlib import Path
@@ -66,7 +66,7 @@ class ControlWindow(ctk.CTk):
 
         # print(cmd)
         
-        run(cmd)
+        run(cmd, creationflags=CREATE_NO_WINDOW)
         
         self.check_service()
 
@@ -85,7 +85,7 @@ class ControlWindow(ctk.CTk):
         else:
             pass
 
-        run(cmd)
+        run(cmd, creationflags=CREATE_NO_WINDOW)
         self.check_service()
 
     def start_service(self):
@@ -96,7 +96,7 @@ class ControlWindow(ctk.CTk):
         else:
             pass
 
-        run(cmd)
+        run(cmd, creationflags=CREATE_NO_WINDOW)
         self.check_service()
 
     def stop_service(self):
@@ -107,7 +107,7 @@ class ControlWindow(ctk.CTk):
         else:
             pass
         
-        run(cmd)
+        run(cmd, creationflags=CREATE_NO_WINDOW)
         self.check_service()
 
     def choose_file(self):
