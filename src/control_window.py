@@ -71,6 +71,19 @@ class FileWidget(ctk.CTkFrame):
     def setFilePath(self, path : Path):
         self.file_path = path
         self.file_label.configure(text=self.file_path)
+
+
+class ScriptsList(ctk.CTkComboBox):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.configure(values=["test", "test2", "test3"])
+        
+        
+        
+    def set_values(self, values : list[str]):
+
+        self.configure(values=values)
+
         
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
@@ -79,7 +92,7 @@ class ControlWindow(ctk.CTk):
         self.title("Control Window")
         self.geometry("400x500")
         
-        self.config = Config("","")
+        self.config = Config("","","")
 
         self.btn_install = ctk.CTkButton(self, text="Install Service", command=self.install_service)
         self.btn_install.pack(pady=5)
@@ -106,8 +119,34 @@ class ControlWindow(ctk.CTk):
         self.service_is_installed = False 
         self.service_is_running = False 
         
+        
+        self.scripts_list = ScriptsList(self)
+        self.scripts_list.configure(command=self.set_script)
+        self.scripts_list.pack(pady=5)
+        
         self.load_config()
         self.check_service()
+        
+        self.load_scripts()
+        
+    def load_scripts(self):
+        try :
+            if(getattr(sys, 'frozen', False)):
+                BASE_DIR = os.path.dirname(sys.executable)
+                scripts_dir = Path(BASE_DIR,"python_scripts")
+            else:
+                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                BASE_DIR = os.path.dirname(BASE_DIR)
+                scripts_dir = Path(BASE_DIR,"python_scripts")
+            file_names = os.listdir(scripts_dir)
+            self.scripts_list.set_values(file_names)
+        except Exception as e:
+            print(e)
+        
+        
+    def set_script(self, script_name : str):
+        self.config.python_script = script_name
+        self.save_config()
         
     def install_service(self):
 
@@ -211,6 +250,7 @@ class ControlWindow(ctk.CTk):
                 self.config = Config.from_json(f.read())
                 self.file_widget.setFilePath(Path(self.config.file_to_convert))
                 self.converted_file.setFilePath(Path(self.config.target_file))
+                self.scripts_list.set(self.config.python_script)
                 print("loaded config ....") 
                 return
         except:

@@ -17,6 +17,7 @@ else:
 class Config:
     file_to_convert : str
     target_file : str
+    python_script : str
     
 def get_config_path() -> str:
     print(__file__)
