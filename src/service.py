@@ -4,9 +4,16 @@ import win32serviceutil  # ServiceFramework and commandline helper
 import win32service  # Events
 import servicemanager  # Simple setup and logging
 from global_vars import SERVICE_NAME, SERVICE_DISPLAY_NAME, SERVICE_DESCRIPTION
-import argparse
+from config import Config, get_config_path
+import json
+import os
 from pathlib import Path
 
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    
 class MyService:
     """Silly little application stub"""
 
@@ -16,28 +23,20 @@ class MyService:
 
     def run(self):
         """Main service loop. This is where work is done!"""
-        
-        parser = argparse.ArgumentParser()
-        parser.add_argument("start", nargs="?", default=False)
-        parser.add_argument("stop", nargs="?", default=False)
-        parser.add_argument("debug", nargs="?", default=False)
-        parser.add_argument("--file", type=str)
-        parser.add_argument("--target-file", type=str)
-        args = parser.parse_args()
+        config_path = get_config_path()
+        with open(config_path, "r") as f:
+            config = Config.from_json(f.read())
+            
         self.running = True
         while self.running:
             
             servicemanager.LogInfoMsg("Service running...")
             # servicemanager.LogInfoMsg(f"{args.file} {args.target_file}")
             data : str = ""
-            if args.file and args.target_file:
-                servicemanager.LogInfoMsg(args.file)
-                servicemanager.LogInfoMsg(args.target_file)
-                with open(Path(args.file), "r") as f:
-                    data = f.read()
-                with open(Path(args.target_file), "w") as f:
-                    f.write(data)
-                    # f.write("I am a service")
+            with open(config.file_to_convert, "r") as f:
+                data = f.read()
+            with open(config.target_file, "w") as f:
+                f.write(data)
             time.sleep(3)  # Important work
 
 
