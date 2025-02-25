@@ -84,7 +84,38 @@ class ScriptsList(ctk.CTkComboBox):
 
         self.configure(values=values)
 
+class ScriptsList2(ctk.CTkFrame):
+    def __init__(self, master=None, command=lambda: None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.list = ctk.CTkComboBox(self)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
         
+        self.command = command
+        
+        self.list.configure(values=["test", "test2", "test3"], command=self.command)
+        self.list.grid(column=0, row=0, padx=5, pady=5)
+        
+        self.reload_btn = ctk.CTkButton(self, text="Reload", command=self.load_scripts)
+        self.reload_btn.grid(column=1, row=0, padx=5, pady=5)
+        
+        self.list.set("Choose a script")
+        self.load_scripts()        
+
+    def load_scripts(self):
+        try :
+            if(getattr(sys, 'frozen', False)):
+                BASE_DIR = os.path.dirname(sys.executable)
+                scripts_dir = Path(BASE_DIR,"python_scripts")
+            else:
+                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                BASE_DIR = os.path.dirname(BASE_DIR)
+                scripts_dir = Path(BASE_DIR,"python_scripts")
+            file_names = os.listdir(scripts_dir)
+            self.list.configure(values=file_names)
+        except Exception as e:
+            print(e)        
 class ControlWindow(ctk.CTk):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -93,6 +124,7 @@ class ControlWindow(ctk.CTk):
         self.geometry("400x500")
         
         self.config = Config("","","")
+        
 
         self.btn_install = ctk.CTkButton(self, text="Install Service", command=self.install_service)
         self.btn_install.pack(pady=5)
@@ -120,32 +152,37 @@ class ControlWindow(ctk.CTk):
         self.service_is_running = False 
         
         
-        self.scripts_list = ScriptsList(self)
-        self.scripts_list.configure(command=self.set_script)
-        self.scripts_list.pack(pady=5)
+        # self.scripts_list = ScriptsList(self)
+        # self.scripts_list.configure(command=self.set_script)
+        # self.scripts_list.pack(pady=5)
+        
+        self.scripts_list2 = ScriptsList2(self, command=self.set_script)
+        self.scripts_list2.pack(pady=5)
+        self.scripts_list2.load_scripts()
         
         self.load_config()
         self.check_service()
         
-        self.load_scripts()
+        # self.load_scripts()
         
-    def load_scripts(self):
-        try :
-            if(getattr(sys, 'frozen', False)):
-                BASE_DIR = os.path.dirname(sys.executable)
-                scripts_dir = Path(BASE_DIR,"python_scripts")
-            else:
-                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-                BASE_DIR = os.path.dirname(BASE_DIR)
-                scripts_dir = Path(BASE_DIR,"python_scripts")
-            file_names = os.listdir(scripts_dir)
-            self.scripts_list.set_values(file_names)
-        except Exception as e:
-            print(e)
+    # def load_scripts(self):
+    #     try :
+    #         if(getattr(sys, 'frozen', False)):
+    #             BASE_DIR = os.path.dirname(sys.executable)
+    #             scripts_dir = Path(BASE_DIR,"python_scripts")
+    #         else:
+    #             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    #             BASE_DIR = os.path.dirname(BASE_DIR)
+    #             scripts_dir = Path(BASE_DIR,"python_scripts")
+    #         file_names = os.listdir(scripts_dir)
+    #         self.scripts_list.set_values(file_names)
+    #     except Exception as e:
+    #         print(e)
         
         
     def set_script(self, script_name : str):
         self.config.python_script = script_name
+        print(self.config.python_script)
         self.save_config()
         
     def install_service(self):
@@ -253,7 +290,8 @@ class ControlWindow(ctk.CTk):
                 self.scripts_list.set(self.config.python_script)
                 print("loaded config ....") 
                 return
-        except:
+        except Exception as e:
+            print(e)
             print("no config to load ... \ncreating one")
             self.save_config() # create a new empty config file
         

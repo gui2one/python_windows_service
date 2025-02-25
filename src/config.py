@@ -20,6 +20,5 @@ class Config:
     python_script : str
     
 def get_config_path() -> str:
-    print(__file__)
     return f"{BASE_DIR}/{CONFIG_FILE_NAME}"
     
